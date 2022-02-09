@@ -6,3 +6,13 @@ return a.author.id, a.author.display_name
 CALL apoc.load.json('https://api.openalex.org/works?filter=institutions.id:I180949307') yield value
 unwind value.results as r
 merge (work:Work{id:r.id}) ON CREATE SET work.title = r.display_name, work.doi = r.ids.doi
+
+
+################
+
+CALL apoc.load.json('file://works.json') yield value
+unwind value.results as r
+unwind r.authorships as a
+merge (work:Work{id:r.id}) ON CREATE SET work.title = r.display_name, work.doi = r.ids.doi
+merge (u:USER{id:a.author.id}) ON CREATE SET u.name =a.author.display_name
+merge(u)-[:Authored]->(work)
