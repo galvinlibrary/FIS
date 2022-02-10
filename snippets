@@ -26,3 +26,16 @@ unwind value.results as r
 unwind r.authorships as a
 Match (u:USER{id:a.author.id})
 Set u.orcid = a.author.orcid
+
+-------------
+
+CALL apoc.load.json('https://api.openalex.org/works?filter=institutions.id:I180949307') yield value
+unwind value.results as r
+unwind r.authorships as a
+unwind a.institutions as i
+merge (work:Work{id:r.id}) ON CREATE SET work.title = r.display_name, work.doi = r.ids.doi
+merge (p:Person{id:a.author.display_name}) ON CREATE SET p.oa_id = a.author.id, p.orcid = a.author.orcid
+merge (inst:Institution{id:apoc.create.uuid()})
+ON CREATE set inst.oa_id = i.id, inst.name = i.display_name, inst.country = i.country_code
+merge(p)-[:Authored]->(work)
+merge(p)-[:MemberOf]->(inst)
