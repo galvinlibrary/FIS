@@ -39,3 +39,9 @@ merge (inst:Institution{id:apoc.create.uuid()})
 ON CREATE set inst.oa_id = i.id, inst.name = i.display_name, inst.country = i.country_code
 merge(p)-[:Authored]->(work)
 merge(p)-[:MemberOf]->(inst)
+
+-------------------------
+
+MATCH (p:Person)-[m:MemberOf]->(i:Institution)
+WHERE i.name = "Illinois Institute of Technology" AND p.orcid IS NOT NULL
+    return p
