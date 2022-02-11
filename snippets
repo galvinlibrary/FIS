@@ -1,21 +1,3 @@
-CALL apoc.load.json('file://works.json') yield value
-unwind value.results as r
-unwind r.authorships as a
-return a.author.id, a.author.display_name
-
-CALL apoc.load.json('https://api.openalex.org/works?filter=institutions.id:I180949307') yield value
-unwind value.results as r
-merge (work:Work{id:r.id}) ON CREATE SET work.title = r.display_name, work.doi = r.ids.doi
-
-
-################
-
-CALL apoc.load.json('file://works.json') yield value
-unwind value.results as r
-unwind r.authorships as a
-merge (work:Work{id:r.id}) ON CREATE SET work.title = r.display_name, work.doi = r.ids.doi
-merge (u:USER{id:a.author.id}) ON CREATE SET u.name =a.author.display_name
-merge(u)-[:Authored]->(work)
 
 
 -------------------
@@ -28,20 +10,22 @@ Match (u:USER{id:a.author.id})
 Set u.orcid = a.author.orcid
 
 -------------
-
-CALL apoc.load.json('https://api.openalex.org/works?filter=institutions.id:I180949307') yield value
+## Build DB
+-------------
+CALL apoc.load.json('https://api.openalex.org/works?filter=institutions.id:I180949307&page=25&sort=publication_date:desc&per-page=200') yield value
 unwind value.results as r
 unwind r.authorships as a
 unwind a.institutions as i
 merge (work:Work{id:r.id}) ON CREATE SET work.title = r.display_name, work.doi = r.ids.doi
 merge (p:Person{id:a.author.display_name}) ON CREATE SET p.oa_id = a.author.id, p.orcid = a.author.orcid
-merge (inst:Institution{id:apoc.create.uuid()})
+merge (inst:Institution{id: coalesce(i.id, "unknown_" + apoc.create.uuid()) })
 ON CREATE set inst.oa_id = i.id, inst.name = i.display_name, inst.country = i.country_code
 merge(p)-[:Authored]->(work)
 merge(p)-[:MemberOf]->(inst)
 
 -------------------------
-
+## match people who are member of IIT
+-------------------------
 MATCH (p:Person)-[m:MemberOf]->(i:Institution)
 WHERE i.name = "Illinois Institute of Technology" AND p.orcid IS NOT NULL
     return p
