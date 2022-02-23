@@ -14,12 +14,12 @@ Set u.orcid = a.author.orcid
 -------------
 
 
-CALL apoc.load.json('https://library.iit.edu/test.json') yield value
+CALL apoc.load.json('https://api.openalex.org/works?filter=institutions.id:I180949307&page=8&sort=publication_date:desc&per-page=20') yield value
 unwind value.results as r
 unwind r.authorships as a
 unwind a.institutions as i
 unwind r.open_access as oa
-merge (work:Work{id:r.id}) ON CREATE SET work.title = r.display_name, work.doi = r.ids.doi, work.oa = r.oa.is_open, work.publication_date = date(r.publication_date)
+merge (work:Work{id:r.id}) ON CREATE SET work.title = r.display_name, work.doi = r.ids.doi, work.oa = r.oa.is_open, work.publication_date = date(r.publication_date), work.alex_last_update = date(r.updated_date) ON MATCH SET work.title = r.display_name, work.doi = r.ids.doi, work.oa = r.oa.is_open, work.publication_date = date(r.publication_date), work.alex_last_update = date(r.updated_date)
 merge (p:Person{id:a.author.display_name}) ON CREATE SET p.oa_id = a.author.id, p.orcid = a.author.orcid ON MATCH SET p.oa_id = a.author.id, p.orcid = a.author.orcid
 merge (inst:Institution{id: coalesce(i.id, "unknown_" ) })
 ON CREATE set inst.oa_id = i.id, inst.name = i.display_name, inst.country = i.country_code
