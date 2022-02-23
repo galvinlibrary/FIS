@@ -12,13 +12,15 @@ Set u.orcid = a.author.orcid
 -------------
 ## Build DB
 -------------
-CALL apoc.load.json('https://api.openalex.org/works?filter=institutions.id:I180949307&page=25&sort=publication_date:desc&per-page=200') yield value
-unwind value.results as r
+
+CALL apoc.load.json('https://library.iit.edu/test.json') yield value // call json file
+// unwind json nested lists
+unwind value.results as r 
 unwind r.authorships as a
 unwind a.institutions as i
-merge (work:Work{id:r.id}) ON CREATE SET work.title = r.display_name, work.doi = r.ids.doi
-merge (p:Person{id:a.author.display_name}) ON CREATE SET p.oa_id = a.author.id, p.orcid = a.author.orcid
-merge (inst:Institution{id: coalesce(i.id, "unknown_" + apoc.create.uuid()) })
+merge (work:Work{id:r.id}) ON CREATE SET work.title = r.display_name, work.doi = r.ids.doi, work.oa = r.open_access.is_oa ON MATCH SET work.title = r.display_name, work.doi = r.ids.doi, work.oa = r.open_access.is_oa
+merge (p:Person{id:a.author.display_name}) ON CREATE SET p.oa_id = a.author.id, p.orcid = a.author.orcid ON MATCH SET p.oa_id = a.author.id, p.orcid = a.author.orcid
+merge (inst:Institution{id: coalesce(i.id, "unknown" ) })  // some temp thing to handle unknown institutions
 ON CREATE set inst.oa_id = i.id, inst.name = i.display_name, inst.country = i.country_code
 merge(p)-[:Authored]->(work)
 merge(p)-[:MemberOf]->(inst)
