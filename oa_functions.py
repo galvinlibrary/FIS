@@ -1,7 +1,7 @@
-import requests, json, urllib, os, sys, math
-
 ### Simple functions for returning OA data.  Must supply a UID and an email address for the requests header.
 ### example: get_works_by_year("I180949307", "mailto=tfluhr@iit.edu")
+
+import requests, json, urllib, os, sys, math
 
 ### Author Functions
 
@@ -61,28 +61,29 @@ def get_works_by_year(uid, header, year=None):
 def get_all_works(uid, header):
     i = 1   ## counter
     cursor = "*"
-    json_dir = r'C:\tmp\json_dir'
+    json_dir = r'C:\tmp\json_dir'   ## hardcoded download directory. use a non existant path.
     apicall = ('https://api.openalex.org/works?filter=institutions.id:{}&sort=publication_date:desc&per-page=200&{}&cursor=*'.format(uid, header))
     works_count = (requests.get(apicall).json()['meta']['count'])
     page_count = math.ceil(works_count/200)
-    print(page_count)
+    #print(page_count)
     isExist = os.path.exists(json_dir)
     if not isExist:
         os.makedirs(json_dir)
         print("Created new directory for your files")
     else:
-        raise SystemExit("Direcotry already in use.  Please select another directory!")
-    while i < 125:
+        raise SystemExit("Please select another directory!")
+    while i <= page_count:
         apicall = ('https://api.openalex.org/works?filter=institutions.id:{}&sort=publication_date:desc&per-page=200&{}&cursor={}'.format(uid, header, cursor))
         response = requests.get(apicall)
         with open(json_dir + "\\" + str(i) + ".json", 'wb') as file:
             file.write(response.content)
-        i += 1
         f = urllib.request.urlopen(apicall)
         x = json.load(f)
         cursor = x['meta']['next_cursor']
         f.close()
-        if i < 125:
-            print("downloading file number", str(i))
+        if i <= page_count:
+            # print("downloading file number", str(i))
+            i += 1
         else:
-            print("JSON download complete.")
+            return("JSON download complete.")
+
