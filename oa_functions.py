@@ -1,4 +1,5 @@
-### Simple functions for returning OA data.  Must supply a UID and an email address for the requests header.
+### Simple functions for returning OA data.  Must supply a  OpenAlex ID (https://docs.openalex.org/about-the-data#the-openalex-id) as 
+### UID and an email address for the requests header.
 ### example: get_works_by_year("I180949307", "mailto=tfluhr@iit.edu")
 ### to use with your own code  `from oa_functions import *`
 
