@@ -1,5 +1,8 @@
 import requests, json, urllib, os, sys, math
 
+### Simple functions for returning OA data.  Must supply a UID and an email address for the requests header.
+### example: get_works_by_year("I180949307", "mailto=tfluhr@iit.edu")
+
 ### Author Functions
 
 def get_author_count(uid, header):
@@ -68,7 +71,7 @@ def get_all_works(uid, header):
         os.makedirs(json_dir)
         print("Created new directory for your files")
     else:
-        raise SystemExit("Please select another directory!")
+        raise SystemExit("Direcotry already in use.  Please select another directory!")
     while i < 125:
         apicall = ('https://api.openalex.org/works?filter=institutions.id:{}&sort=publication_date:desc&per-page=200&{}&cursor={}'.format(uid, header, cursor))
         response = requests.get(apicall)
